@@ -1,0 +1,62 @@
+package oci.queue;
+
+import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
+import com.oracle.bmc.queue.QueueClient;
+import java.util.List;
+import com.oracle.bmc.queue.model.Message;
+import com.oracle.bmc.queue.requests.GetMessagesRequest;
+import com.oracle.bmc.queue.requests.PutMessagesRequest;
+import com.oracle.bmc.queue.responses.GetMessagesResponse;
+import com.oracle.bmc.queue.responses.PutMessagesResponse;
+import com.oracle.bmc.queue.model.PutMessagesDetails;
+import com.oracle.bmc.queue.model.PutMessagesDetailsEntry;
+
+import java.util.List;
+
+public class App {
+    public static void main(String[] args) throws Exception {
+        // Initialize authentication provider
+        ConfigFileAuthenticationDetailsProvider provider =
+                new ConfigFileAuthenticationDetailsProvider("~/.oci/config", "DEFAULT");
+
+        // Queue OCID
+        String queueId = "ocid1.queue.oc1..exampleuniqueID"; // Replace with your Queue OCID
+
+        try (QueueClient queueClient = new QueueClient(provider)) {
+            // Send a message
+            PutMessagesDetailsEntry message = PutMessagesDetailsEntry.builder()
+                    .content("Hello OCI Queue!")
+                    .build();
+
+            PutMessagesDetails putMessagesDetails = PutMessagesDetails.builder()
+                    .messages(List.of(message))
+                    .build();
+
+            PutMessagesRequest putMessagesRequest = PutMessagesRequest.builder()
+                    .queueId(queueId)
+                    .putMessagesDetails(putMessagesDetails)
+                    .build();
+
+            PutMessagesResponse putMessagesResponse = queueClient.putMessages(putMessagesRequest);
+            System.out.println("Messages sent: " + putMessagesResponse.getPutMessages().getMessages());
+
+            // Receive a message
+            GetMessagesRequest getMessagesRequest = GetMessagesRequest.builder()
+                    .queueId(queueId)
+                    .limit(1)
+                    .build();
+
+            GetMessagesResponse getMessagesResponse = queueClient.getMessages(getMessagesRequest);
+            //System.out.println("Messages received: " + getMessagesResponse.getMessages());
+	    // Correctly retrieve the list of messages from the response
+	    List<Message> messages = getMessagesResponse.getItems();
+
+	    // Process and print the messages
+	    for (Message message : messages) {
+    		System.out.println("Message Content: " + message.getContent());
+	    }
+
+        }
+    }
+}
+
