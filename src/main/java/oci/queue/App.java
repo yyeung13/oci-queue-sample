@@ -1,6 +1,9 @@
 package oci.queue;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
 import com.oracle.bmc.queue.QueueClient;
 import com.oracle.bmc.queue.QueueClient.Builder;
 import com.oracle.bmc.queue.requests.GetMessagesRequest;
@@ -12,10 +15,10 @@ import com.oracle.bmc.queue.model.PutMessagesDetails;
 import com.oracle.bmc.queue.model.PutMessagesDetailsEntry;
 import com.oracle.bmc.queue.model.GetMessage;
 import com.oracle.bmc.queue.model.GetMessages;
+import com.oracle.bmc.queue.model.MessageMetadata;
 import com.oracle.bmc.auth.BasicAuthenticationDetailsProvider;
 import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
 
-import java.util.List;
 
 public class App {
     public static void main(String[] args) {
@@ -40,8 +43,17 @@ public class App {
             String queueId = "ocid1.queue.oc1.ap-singapore-1.amaaaaaagoffsvaavlvveyyxvv4mnicxwh3htt3a2p4b2yoccrfkzteb3ffq";
 
             // Send Messages
+	    String channelName = "Demo_Channel";
+	    Map<String, String> messageAttributes = new HashMap<>();
+            messageAttributes.put("channel", channelName);
+
+	    MessageMetadata messageMetadata = MessageMetadata.builder()
+                .channelId(channelName)
+                .build();
+
             PutMessagesDetailsEntry messageEntry = PutMessagesDetailsEntry.builder()
                     .content("Hello, OCI Queue, here I come!")
+		    .metadata(messageMetadata)
                     .build();
 	    List<PutMessagesDetailsEntry> messageDetails = new ArrayList<>();
 	    messageDetails.add(messageEntry);
@@ -62,6 +74,7 @@ public class App {
             // Retrieve Messages
             GetMessagesRequest getMessagesRequest = GetMessagesRequest.builder()
                     .queueId(queueId)
+		    .channelFilter(channelName)
                     .limit(5) // Retrieve up to 5 messages
                     .build();
 
